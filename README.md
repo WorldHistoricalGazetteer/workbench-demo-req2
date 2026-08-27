@@ -77,6 +77,10 @@ and those are precisely the places a historian would want to contribute back.
 
 ## What the map shows
 
+- **Zoomed out, a heatmap** — where litigation clustered. At national scale a thousand overlapping
+  dots say only "there were cases"; density is the question that scale can answer.
+- **Zoomed in, individual places.** The two cross-fade between z6 and z8, so an individual point
+  appears exactly when it starts to mean something.
 - **Each point is a place**, sized by how many cases mention it.
 - **Colour distinguishes the role** the place plays, which is recoverable because each mention
   remembers the field it came from:

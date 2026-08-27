@@ -19,6 +19,8 @@ const ROLES = {
   plaintiffs: { label: "plaintiff's residence", colour: '#2f6b8f' },
 };
 const DISCOVERY = id => `https://discovery.nationalarchives.gov.uk/details/r/${id}`;
+// Left padding clears the panel, so fitting to the data never parks points underneath it.
+const FIT_PAD = { top: 40, right: 40, bottom: 40, left: 360 };
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
@@ -158,7 +160,7 @@ function wireSearch() {
     if (pts.length) {
       const lons = pts.map(p => p.lon), lats = pts.map(p => p.lat);
       map.fitBounds([[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-        { padding: { top: 40, right: 40, bottom: 40, left: 360 }, duration: 700 });
+        { padding: FIT_PAD, maxZoom: 10, duration: 700 });
     }
   });
 
@@ -180,6 +182,29 @@ function wireSearch() {
   // waits for, and hanging the data off it left the page behind an overlay that never lifted.
   map.on('style.load', () => {
     map.addSource('places', { type: 'geojson', data: toGeoJSON() });
+
+    // Zoomed out, individual points are meaningless: a thousand overlapping dots over England and
+    // Wales say only "there were cases". A heatmap answers the question that scale can actually
+    // answer — where litigation clustered — and hands over to the circles as soon as the reader is
+    // close enough for an individual place to mean something. The two cross-fade between z6 and z8,
+    // so there is no moment where the map is empty or doubled.
+    map.addLayer({
+      id: 'places-heat', type: 'heatmap', source: 'places', maxzoom: 8.5,
+      paint: {
+        // A place in twenty cases should weigh more than one in a single case, but not twenty times
+        // more, or one county town drowns its neighbours.
+        'heatmap-weight': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 0.35, 6, 1],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 0.9, 8, 1.6],
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 14, 8, 34],
+        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 6, .85, 8.5, 0],
+        'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+          0,    'rgba(179,69,47,0)',
+          0.15, 'rgba(214,168,120,0.45)',
+          0.4,  'rgba(203,124,74,0.65)',
+          0.7,  'rgba(179,69,47,0.8)',
+          1,    'rgba(122,45,28,0.92)'],
+      },
+    });
     map.addLayer({
       id: 'places-circles', type: 'circle', source: 'places',
       paint: {
@@ -188,8 +213,9 @@ function wireSearch() {
         'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 4, 3, 9, 8, 20],
         'circle-color': ['match', ['get', 'role'], 'plaintiffs', ROLES.plaintiffs.colour, ROLES.subject.colour],
         // A detailed basemap is busy, so the points need to hold their own.
-        'circle-opacity': .85, 'circle-stroke-width': 1.5,
-        'circle-stroke-color': '#fff', 'circle-stroke-opacity': .95,
+        'circle-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0, 8, .85],
+        'circle-stroke-width': 1.5, 'circle-stroke-color': '#fff',
+        'circle-stroke-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0, 8, .95],
       },
     });
     map.addLayer({
@@ -205,7 +231,10 @@ function wireSearch() {
     map.on('click', 'places-circles', e => openPlace(e.features[0].properties.idx));
     map.on('mouseenter', 'places-circles', () => { map.getCanvas().style.cursor = 'pointer'; });
     map.on('mouseleave', 'places-circles', () => { map.getCanvas().style.cursor = ''; });
-    if (DB.bounds) map.fitBounds(DB.bounds, { padding: { top: 40, right: 40, bottom: 40, left: 360 }, duration: 0 });
+    // The bounds come from the data, so they widen by themselves as counties are added — nothing to
+    // maintain. maxZoom stops an early partial sweep from opening tight on one county, which would
+    // make a map of England and Wales look like a map of Essex.
+    if (DB.bounds) map.fitBounds(DB.bounds, { padding: FIT_PAD, maxZoom: 8, duration: 0 });
     $('#loading').classList.add('done');
   });
 
