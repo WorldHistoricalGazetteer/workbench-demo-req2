@@ -1,0 +1,88 @@
+:root {
+  --bg: #fbfaf7;
+  --ink: #23201c;
+  --muted: #6b655c;
+  --rule: #ded8cd;
+  --subject: #b3452f;      /* disputed property */
+  --plaintiffs: #2f6b8f;   /* plaintiff's residence */
+  --panel-w: 22rem;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font: 15px/1.5 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color: var(--ink); background: var(--bg);
+}
+#map { position: absolute; inset: 0; }
+
+#panel {
+  position: absolute; top: 1rem; left: 1rem; z-index: 2;
+  width: var(--panel-w); max-width: calc(100vw - 2rem);
+  max-height: calc(100vh - 2rem); overflow-y: auto;
+  background: rgba(251, 250, 247, .96); border: 1px solid var(--rule); border-radius: 3px;
+  padding: 1.1rem 1.2rem; box-shadow: 0 2px 14px rgba(0,0,0,.13);
+}
+#panel h1 { font-size: 1.28rem; line-height: 1.2; margin: 0 2rem .5rem 0; font-weight: 600; }
+.lede { margin: 0 0 .9rem; }
+.note { font-size: .82rem; color: var(--muted); line-height: 1.45; margin: .8rem 0 0; }
+.credit { border-top: 1px solid var(--rule); padding-top: .6rem; }
+a { color: #7a3b28; }
+
+#panel-toggle {
+  position: absolute; top: .5rem; right: .6rem; border: 0; background: none;
+  font-size: 1.5rem; line-height: 1; color: var(--muted); cursor: pointer; padding: .1rem .3rem;
+}
+#panel.collapsed #panel-body, #panel.collapsed .lede { display: none; }
+#panel.collapsed h1 { margin-bottom: 0; }
+#panel.collapsed #panel-toggle::before { content: "\002B"; }
+#panel.collapsed #panel-toggle { font-size: 1.3rem; }
+#panel.collapsed #panel-toggle { color: var(--ink); }
+
+dl#stats { display: grid; grid-template-columns: auto 1fr; gap: .1rem .6rem; margin: 0 0 .9rem; font-size: .9rem; }
+dl#stats dt { color: var(--muted); }
+dl#stats dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+fieldset { border: 0; padding: 0; margin: 0 0 .8rem; }
+legend { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 0; }
+fieldset label { display: flex; align-items: center; gap: .45rem; font-size: .92rem; padding: .12rem 0; cursor: pointer; }
+fieldset em { color: var(--muted); font-style: normal; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.key { width: .8rem; height: .8rem; border-radius: 50%; flex: none; }
+.key-subject { background: var(--subject); }
+.key-plaintiffs { background: var(--plaintiffs); }
+
+#search-wrap { display: block; font-size: .8rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; }
+#search { display: block; width: 100%; margin-top: .25rem; padding: .4rem .5rem; font: inherit;
+  font-size: .92rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
+#results { list-style: none; margin: .4rem 0 0; padding: 0; max-height: 11rem; overflow-y: auto;
+  border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
+#results li { padding: .3rem .5rem; cursor: pointer; font-size: .9rem; }
+#results li:hover, #results li:focus { background: #f0ece3; }
+#results li + li { border-top: 1px solid var(--rule); }
+
+#unlocated-wrap { margin-top: .9rem; }
+#unlocated-wrap summary { cursor: pointer; font-size: .9rem; }
+#unlocated { list-style: none; margin: .5rem 0 0; padding: 0; max-height: 12rem; overflow-y: auto;
+  font-size: .86rem; column-count: 2; column-gap: 1rem; }
+#unlocated li { break-inside: avoid; color: var(--muted); }
+
+#loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 3;
+  background: var(--bg); color: var(--muted); font-size: 1rem; }
+#loading.done { display: none; }
+
+.maplibregl-popup { max-width: 23rem !important; font-family: inherit; }
+.maplibregl-popup-content { padding: .85rem 1rem 1rem; border-radius: 3px; background: var(--bg); }
+.pop h2 { margin: 0 0 .1rem; font-size: 1.05rem; font-weight: 600; }
+.pop .sub { color: var(--muted); font-size: .8rem; margin: 0 0 .6rem; }
+.pop ol { margin: 0; padding-left: 1.1rem; max-height: 15rem; overflow-y: auto; font-size: .88rem; }
+.pop li { margin-bottom: .5rem; }
+.pop .ref { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; }
+.pop .role { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; padding: .05rem .3rem;
+  border-radius: 2px; color: #fff; }
+.pop .role-subject { background: var(--subject); }
+.pop .role-plaintiffs { background: var(--plaintiffs); }
+.pop .ctx { color: var(--muted); display: block; }
+
+@media (max-width: 620px) {
+  #panel { top: .5rem; left: .5rem; right: .5rem; width: auto; max-height: 60vh; }
+}

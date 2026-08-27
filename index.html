@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapping the Elizabethan Court of Requests</title>
+<meta name="description" content="Places named in the pleadings of the Elizabethan Court of Requests (TNA REQ 2), extracted from the catalogue with the World Historical Gazetteer Workbench.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#x2696;</text></svg>">
+<link href="https://unpkg.com/maplibre-gl@5.3.1/dist/maplibre-gl.css" rel="stylesheet">
+<link href="app.css" rel="stylesheet">
+</head>
+<body>
+<div id="map"></div>
+
+<aside id="panel" aria-label="About this map">
+  <button id="panel-toggle" aria-expanded="true" aria-controls="panel-body" title="Show or hide this panel">&times;</button>
+  <h1>The Elizabethan Court&nbsp;of&nbsp;Requests</h1>
+  <p class="lede">Places named in the pleadings of <abbr title="The National Archives, series REQ 2">REQ&nbsp;2</abbr>
+     for <strong>Essex</strong>, c.&nbsp;1558&ndash;1603 &mdash; read out of the catalogue descriptions
+     themselves, not just the county field.</p>
+  <div id="panel-body">
+    <dl id="stats"></dl>
+
+    <fieldset id="roles">
+      <legend>Show</legend>
+      <label><input type="checkbox" data-role="subject" checked>
+        <span class="key key-subject"></span> disputed property <em id="n-subject"></em></label>
+      <label><input type="checkbox" data-role="plaintiffs" checked>
+        <span class="key key-plaintiffs"></span> plaintiff&rsquo;s residence <em id="n-plaintiffs"></em></label>
+    </fieldset>
+
+    <label id="search-wrap">Find a place
+      <input id="search" type="search" placeholder="e.g. Upminster" autocomplete="off">
+    </label>
+    <ul id="results" hidden></ul>
+
+    <details id="unlocated-wrap">
+      <summary>Named but not located <em id="n-unlocated"></em></summary>
+      <p class="note">Names the extractor found that WHG&rsquo;s index could not match inside Essex.
+         About half are real places the gazetteer does not yet know &mdash; the rest are mostly
+         people&rsquo;s names, which is exactly what searching inside a county filters out.</p>
+      <ul id="unlocated"></ul>
+    </details>
+
+    <p class="note">
+      Built with the World Historical Gazetteer <strong>Workbench</strong>.
+      <a href="https://github.com/WorldHistoricalGazetteer/workbench-demo-req2#readme">How this was made</a> &middot;
+      <a href="https://whgazetteer.org/">WHG</a>
+    </p>
+    <p class="note credit">Catalogue data &copy; The National Archives, under the
+      <a href="https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/">OGL&nbsp;v3.0</a>.
+      A demonstration: extracted places are candidates for review, not findings.</p>
+  </div>
+</aside>
+
+<div id="loading">Loading places&hellip;</div>
+
+<script src="https://unpkg.com/maplibre-gl@5.3.1/dist/maplibre-gl.js"></script>
+<script src="app.js" type="module"></script>
+</body>
+</html>
