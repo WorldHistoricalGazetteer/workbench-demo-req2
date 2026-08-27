@@ -115,7 +115,9 @@ record regardless.
 - Catalogue data: **The National Archives**, [Discovery](https://discovery.nationalarchives.gov.uk/),
   under the [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/).
 - Place matching and coordinates: [World Historical Gazetteer](https://whgazetteer.org/).
-- Basemap: WHG's own tile service.
+- Basemap: [OpenFreeMap](https://openfreemap.org/) (Liberty), built from
+  [OpenStreetMap](https://www.openstreetmap.org/copyright) data via
+  [OpenMapTiles](https://www.openmaptiles.org/).
 - Prompted by Sharon Howard's work on this series, and by Daniel Gosling's cataloguing of it.
 
 Code in this repository is MIT-licensed. The derived data follows the licences of its sources.

@@ -5,7 +5,11 @@
 // is computed here that the Workbench did not already establish; this file only draws it.
 
 const DATA = 'data/places.json';
-const STYLE = 'https://tiles.whgazetteer.org/styles/whg-context/style.json';
+// OpenFreeMap's "Liberty" — OpenStreetMap data, OpenMapTiles schema, no key and no usage limits, and
+// it sends CORS headers. Chosen over WHG's own whg-context style because this map wants CONTEXT:
+// roads, rivers, parish-scale settlement and coastline, so a reader can see that a disputed messuage
+// sits between two villages rather than floating in an empty county.
+const STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 const ROLES = {
   subject:    { label: 'disputed property',      colour: '#b3452f' },
   plaintiffs: { label: "plaintiff's residence",  colour: '#2f6b8f' },
@@ -135,8 +139,13 @@ function wireSearch() {
 
   map = new maplibregl.Map({
     container: 'map', style: STYLE, center: DB.centre || [0.5, 51.8], zoom: 8.4,
-    attributionControl: { customAttribution:
-      'Places: <a href="https://whgazetteer.org/">WHG</a> · Catalogue: <a href="https://discovery.nationalarchives.gov.uk/">TNA</a> (OGL v3.0)' },
+    // Liberty declares no attribution of its own, so all of it is supplied here.
+    attributionControl: { compact: true, customAttribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · '
+      + '<a href="https://openfreemap.org/">OpenFreeMap</a> · '
+      + '<a href="https://www.openmaptiles.org/">OpenMapTiles</a> · '
+      + 'Places: <a href="https://whgazetteer.org/">WHG</a> · '
+      + 'Catalogue: <a href="https://discovery.nationalarchives.gov.uk/">TNA</a> (OGL v3.0)' },
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 120 }), 'bottom-right');
@@ -155,18 +164,23 @@ function wireSearch() {
         'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 5, 3, 11, 7, 22],
         'circle-color': ['match', ['get', 'role'],
           'plaintiffs', ROLES.plaintiffs.colour, ROLES.subject.colour],
-        'circle-opacity': .72,
-        'circle-stroke-width': 1, 'circle-stroke-color': '#fbfaf7', 'circle-stroke-opacity': .9,
+        // A detailed basemap is busy, so the points must hold their own: near-opaque fill and a
+        // thick white collar that separates them from roads and from OSM's own labels.
+        'circle-opacity': .88,
+        'circle-stroke-width': 2, 'circle-stroke-color': '#fff', 'circle-stroke-opacity': .95,
       },
     });
     map.addLayer({
       id: 'places-labels', type: 'symbol', source: 'places',
-      minzoom: 9,
+      minzoom: 8,
       layout: {
-        'text-field': ['get', 'name'], 'text-size': 11, 'text-offset': [0, 1.1],
-        'text-anchor': 'top', 'text-allow-overlap': false,
+        // OSM labels many of the same settlements, so ours are set in bold, in the accent colour, and
+        // offset below the point — the pair reads as "this is the place, and the catalogue named it".
+        // 'Noto Sans Bold' is one of the three fontstacks the Liberty glyph server actually serves.
+        'text-field': ['get', 'name'], 'text-size': 12, 'text-offset': [0, 1.2],
+        'text-anchor': 'top', 'text-allow-overlap': false, 'text-font': ['Noto Sans Bold'],
       },
-      paint: { 'text-color': '#23201c', 'text-halo-color': '#fbfaf7', 'text-halo-width': 1.4 },
+      paint: { 'text-color': '#7a2d1c', 'text-halo-color': '#fff', 'text-halo-width': 2 },
     });
 
     map.on('click', 'places-circles', e => openPlace(e.features[0].properties.idx));
