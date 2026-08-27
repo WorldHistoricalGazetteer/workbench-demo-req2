@@ -40,6 +40,9 @@ for county, meta in manifest.items():
         except ValueError:
             continue
         readings += 1
+        # The earliest Essex readings predate the sweep layout and carry no county key; the file they
+        # are in is the answer.
+        r.setdefault('county', county)
         seen_cases.add(r['ref'])
         for p in r.get('places') or []:
             # The county itself is named in nearly every entry of its own set and resolves every time,
