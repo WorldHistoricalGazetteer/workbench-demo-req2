@@ -88,36 +88,39 @@ and those are precisely the places a historian would want to contribute back.
 "Case mentions Upminster" is a weak fact. "A plaintiff of Upminster suing over land in Gaynes" is an
 analysable one, and the difference is entirely in keeping track of which field each name came from.
 
-## The half that is missing: review
+## Autonomous, but not a black box
 
-Everything on this map is the **automatic first pass**, and that is the least interesting half of the
-Workbench.
+Everything on this map was produced without anyone intervening. The catalogue was fetched, the county
+column reconciled, the prose read, the names searched inside their own county polygons and the table
+rebuilt — end to end, unattended, across county after county. That is the claim being demonstrated,
+and it is worth stating plainly rather than hedging.
 
-Extraction and containment get you a set of candidates. What turns candidates into evidence is a
-person looking at them, and the Workbench is built for exactly that: reconciliation presents the
-rival candidates for each row and you choose between them, accept more than one where a name really
-does denote two records, reject a wrong match, mark a row as having no match at all, search by hand
-for something the index missed, and record a reason for the decision. Rows are worked through with
-the keyboard; a decision, once made, survives a re-run of the extraction.
+What makes it usable rather than merely impressive is that the same pipeline stops for a person
+wherever you want it to. The Workbench's reconciliation stage presents the rival candidates for each
+row and takes a decision: pick one, accept more than one where a name really does denote two records,
+reject a match outright, mark a row as having none, search by hand for something the index missed, or
+record why you chose as you did. Decisions are made from the keyboard, and they survive a re-run of
+the extraction, so intervening once does not mean intervening again.
 
-That is where a historian would resolve the things this map cannot. Which *Stratford*, when a county
-holds two. Whether *Bloys* is a manor or a scribe's spelling of a surname. Whether the *Barking* that
-matched is the right one, given it came back from a Trismegistos record. Whether an unmatched name
-like *Honyngforde* is a real Essex place worth contributing to the gazetteer, or a misreading.
+Those are the levers a historian would reach for here. Which *Stratford*, where a county holds two.
+Whether *Bloys* is a manor or a scribe's spelling of a surname. Whether the *Barking* that matched is
+the right one, given it came back from a Trismegistos record. Whether an unmatched name like
+*Honyngforde* is a real Essex place worth contributing to the gazetteer, or a misreading worth
+rejecting. The Workbench's own output flags which rows invite the question — matched inside the
+county, matched only outside it, or not matched at all — so the review is directed rather than
+exhaustive.
 
-None of that has been done here, deliberately: the point of this demonstration is to show what the
-automatic stage produces and hands to a researcher, not to pass itself off as a finished dataset. The
-`place_status` column in the Workbench's own output flags exactly which rows want attention — matched
-inside the county, matched only outside it, or not matched at all.
+None of it was needed to produce what you see. That is the difference between a process that can run
+autonomously and one that must.
 
 ## Caveats
 
 This is a demonstration, and it should be read as one.
 
-- **The extraction is not authoritative, and it has not been reviewed.** A small model reading
-  early-modern legal abstracts gets most names and misses some, and every match here was accepted
-  automatically. Points on this map are candidates a researcher would work through in the Workbench —
-  see above — not findings.
+- **Every match here was accepted automatically.** A small model reading early-modern legal abstracts
+  gets most names and misses some, and nothing on this map has been confirmed by a person. Points are
+  what the pipeline concluded unaided; the Workbench's review tools exist for when you want to settle
+  the doubtful ones, and were not used.
 - **Two fields, not all of them.** Only *Subject* and *Plaintiffs* are read. Defendants' residences —
   the other half of the litigants — are not here.
 - **The sweep may be partly done.** The panel says how many counties have been read. Everything shown
