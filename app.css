@@ -99,4 +99,5 @@ fieldset em { color: var(--muted); font-style: normal; font-size: .82rem; font-v
   font-size: .92rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
 
 .pop .loading { color: var(--muted); font-size: .88rem; }
+.pop .roles { margin: 0 0 .55rem; display: flex; gap: .3rem; flex-wrap: wrap; }
 .pop .county { font-size: .78rem; color: var(--muted); }

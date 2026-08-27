@@ -75,10 +75,17 @@ async function mentionsFor(c) {
 function popupHTML(place, rows) {
   const shown = rows.filter(m => active.has(m.role));
   const cases = new Set(shown.map(m => m.ref));
+  // Most places only ever appear in one field, so stamping the same role on every line said nothing
+  // twenty times over. State it once, up top; mark individual lines only where a place really does
+  // play both parts — which is the interesting case, and now the only one that draws the eye.
+  const kinds = [...new Set(shown.map(m => m.role))];
+  const mixed = kinds.length > 1;
+  const roleLine = kinds.map(k =>
+    `<span class="role role-${k}">${esc(ROLES[k].label)}</span>`).join(' ');
   const list = shown.map(m => `
     <li>
       <a class="ref" href="${DISCOVERY(m.tna)}" target="_blank" rel="noopener">${esc(m.ref)}</a>
-      <span class="role role-${m.role}">${esc(ROLES[m.role].label)}</span>
+      ${mixed ? `<span class="role role-${m.role}">${esc(ROLES[m.role].label)}</span>` : ''}
       ${m.date ? ` <span class="ctx">${esc(m.date)}</span>` : ''}
       ${m.title ? `<span class="ctx">${esc(m.title)}</span>` : ''}
       ${m.ctx ? `<span class="ctx">&ldquo;${esc(m.ctx)}&rdquo;</span>` : ''}
@@ -88,6 +95,7 @@ function popupHTML(place, rows) {
       <p class="sub">${plural(cases.size, 'case', 'cases')}
         <span class="county">· ${esc(place.county)}</span>
         ${place.whg_id ? ` · <a href="https://whgazetteer.org/places/${esc(place.whg_id)}/portal/" target="_blank" rel="noopener">WHG record</a>` : ''}</p>
+      <p class="roles">${roleLine}</p>
       <ol>${list}</ol>
     </div>`;
 }
