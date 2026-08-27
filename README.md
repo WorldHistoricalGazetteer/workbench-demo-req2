@@ -1,7 +1,8 @@
 # Mapping the Elizabethan Court of Requests
 
 An interactive map of the places named in **TNA REQ 2** — the pleadings of the Court of Requests,
-c. 1558–1603 — for a single county, built end-to-end from an open catalogue with no bespoke code.
+c. 1558–1603 — across the historic counties of **England and Wales**, built end-to-end from an open
+catalogue with no bespoke code.
 
 **[→ Open the map](https://worldhistoricalgazetteer.github.io/workbench-demo-req2/)**
 
@@ -27,17 +28,18 @@ world's many *Bostons* or *Richmonds* each one is, and keep every name tied to t
 from.
 
 That is what the World Historical Gazetteer's forthcoming **Workbench** does, and this map is the
-output of running it once, over one county.
+output of running it over county after county — 52 historic counties, some 18,500 catalogue entries.
 
 ## How it was made
 
 Nothing here was hand-built. Every step is a feature of the Workbench, in the browser:
 
 1. **Fetch the catalogue.** TNA's Discovery API is open and needs no key. Filtering REQ 2 to
-   Elizabethan dates and to entries whose `County` field is exactly *Essex* gives 914 records.
+   Elizabethan dates, then to entries whose `County` field names one historic county, gives between a
+   handful (Cardiganshire: 5) and nine hundred (Essex: 913) records apiece.
 2. **Reconcile the county.** The Workbench matches the *county* column against
-   [UK Historic Counties](https://whgazetteer.org/), resolving all 914 rows to one polygon,
-   `ukhc:ESE`.
+   [UK Historic Counties](https://whgazetteer.org/), resolving every row in a county's set to a single
+   polygon — `ukhc:ESE` for Essex, `ukhc:YRK` for Yorkshire, and so on.
 3. **Read the prose, row by row.** A small language model running on WHG's own server reads the
    *Subject* and *Plaintiffs* fields of each record and returns the place names in them.
 4. **Search inside the county.** Each row's names are looked up in WHG's index **constrained to that
@@ -46,7 +48,12 @@ Nothing here was hand-built. Every step is a feature of the Workbench, in the br
 5. **Explode to one row per mention.** The table is rebuilt with a row for each (record × field ×
    place), so every mention keeps its case reference, its date, and the field it came from.
 
-The result is this map. The data file it reads is the Workbench's own output, unedited.
+The result is this map. The data files it reads are the Workbench's own output, unedited.
+
+**Counties are visited in an order that jumps around the country** — a farthest-point traversal from
+Essex, so each county read is the one furthest from everything read so far. The map therefore spreads
+across England and Wales early rather than creeping outwards from one corner, and a partial sweep is
+still representative.
 
 ## Why searching inside the county matters
 
@@ -81,28 +88,63 @@ and those are precisely the places a historian would want to contribute back.
 "Case mentions Upminster" is a weak fact. "A plaintiff of Upminster suing over land in Gaynes" is an
 analysable one, and the difference is entirely in keeping track of which field each name came from.
 
+## The half that is missing: review
+
+Everything on this map is the **automatic first pass**, and that is the least interesting half of the
+Workbench.
+
+Extraction and containment get you a set of candidates. What turns candidates into evidence is a
+person looking at them, and the Workbench is built for exactly that: reconciliation presents the
+rival candidates for each row and you choose between them, accept more than one where a name really
+does denote two records, reject a wrong match, mark a row as having no match at all, search by hand
+for something the index missed, and record a reason for the decision. Rows are worked through with
+the keyboard; a decision, once made, survives a re-run of the extraction.
+
+That is where a historian would resolve the things this map cannot. Which *Stratford*, when a county
+holds two. Whether *Bloys* is a manor or a scribe's spelling of a surname. Whether the *Barking* that
+matched is the right one, given it came back from a Trismegistos record. Whether an unmatched name
+like *Honyngforde* is a real Essex place worth contributing to the gazetteer, or a misreading.
+
+None of that has been done here, deliberately: the point of this demonstration is to show what the
+automatic stage produces and hands to a researcher, not to pass itself off as a finished dataset. The
+`place_status` column in the Workbench's own output flags exactly which rows want attention — matched
+inside the county, matched only outside it, or not matched at all.
+
 ## Caveats
 
 This is a demonstration, and it should be read as one.
 
-- **The extraction is not authoritative.** A small model reading early-modern legal abstracts gets
-  most names and misses some. Points on this map are candidates a researcher would review, not
-  findings.
-- **One county, two fields.** Only *Subject* and *Plaintiffs* were read. Defendants' residences —
+- **The extraction is not authoritative, and it has not been reviewed.** A small model reading
+  early-modern legal abstracts gets most names and misses some, and every match here was accepted
+  automatically. Points on this map are candidates a researcher would work through in the Workbench —
+  see above — not findings.
+- **Two fields, not all of them.** Only *Subject* and *Plaintiffs* are read. Defendants' residences —
   the other half of the litigants — are not here.
+- **The sweep may be partly done.** The panel says how many counties have been read. Everything shown
+  is complete for the counties listed; the rest are simply not there yet.
 - **Coordinates are modern.** They come from matching against present-day and historical gazetteer
   records, so a point marks roughly where a named place is, not the extent of a manor or parish in
   1590.
 - **Dates are the catalogue's.** Many REQ 2 entries are dated only to the reign, and appear here as
   the full range 1558–1603.
-- **Essex itself is not plotted.** The county is named in nearly every entry and resolves every time,
-  so mapping it would put one enormous dot over the middle of the county telling you what you already
-  knew. It is the container of this dataset, not a finding within it.
+- **Counties themselves are not plotted.** A county is named in nearly every entry of its own set and
+  resolves every time, so mapping it would put one enormous dot over the middle of it telling you what
+  you already knew. It is the container of that subset, not a finding within it.
 
 ## Data
 
-`data/places.json` is generated by the Workbench and consumed directly by the map. Each entry carries
-the place name, its WHG identifier and coordinates, and the mentions that produced it.
+Three files, generated by `tools/build_data.py` from the Workbench's own output:
+
+- `data/places.json` — every located place: name, WHG identifier, coordinates, county, and counts by
+  role. This is all the map needs to draw, so it is loaded up front.
+- `data/mentions/<County>.json` — the case references, dates, titles and context snippets behind
+  those counts, fetched only when a popup opens.
+- `data/progress.json` — which counties have been read, and the names that could not be located.
+
+The split is deliberate rather than premature. The map needs coordinates and counts for thousands of
+places; it needs case detail for the one place a reader clicks. Keeping them apart holds the first
+paint to a few hundred kilobytes however far the sweep goes, and if the point count ever justifies
+vector tiles it is a change of data format behind the same interface, not a rewrite.
 
 Catalogue detail is embedded rather than fetched live. The Discovery API serves no
 `Access-Control-Allow-Origin` header, so a static site cannot call it from the browser at all; each

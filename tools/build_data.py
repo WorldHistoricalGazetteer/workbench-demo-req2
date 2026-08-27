@@ -1,72 +1,100 @@
 #!/usr/bin/env python3
-"""Turn the Workbench's extraction output into the map's data file.
+"""Turn the Workbench sweep output into the map's data files.
 
 Input:
-  req2-essex.csv                 the table as imported into Map your Data (from TNA Discovery)
-  req2-essex-extraction.json     the Workbench's per-reading results, exported from the browser
+  sweep/manifest.json      per-county status, written by the sweep as it goes
+  sweep/<County>.jsonl     one line per reading (record x field), with the places found
 
 Output:
-  data/places.json               what index.html reads
+  data/places.json         every located place: name, WHG id, coordinates, per-role counts, county
+  data/mentions/<County>.json   the mention detail, fetched only when a popup opens
+  data/progress.json       which counties are done, for the panel
 
-This does no extraction and no matching of its own. Every place, coordinate and identifier here was
-established by the Workbench; this script only groups mentions by place and drops what the run has
-not reached yet.
+The split is deliberate. The map needs coordinates and counts to draw; it needs the case references,
+dates and titles only for the one place a reader clicks. Keeping them apart means the first paint
+stays small however many counties are swept, and it is a smaller change than tiling would be if the
+point count ever justifies PMTiles.
+
+This does no extraction and no matching. Every place, coordinate and identifier was established by the
+Workbench; this only groups mentions by place and drops what has not been reached yet.
 """
-import csv, json, sys, datetime
+import datetime, json, os, sys
 from collections import OrderedDict
 
-src_csv, src_json, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+SWEEP, OUT = sys.argv[1], sys.argv[2]
+os.makedirs(os.path.join(OUT, 'mentions'), exist_ok=True)
 
-rows = list(csv.DictReader(open(src_csv)))
-ex = json.load(open(src_json))
-col_names = {c: n for c, n in zip(ex['cols'], ex['colNames'])}
+manifest = json.load(open(os.path.join(SWEEP, 'manifest.json')))['counties']
+places, progress, mentions_by_county = OrderedDict(), [], {}
+totals = {'records': 0, 'readings': 0, 'mentions': 0, 'unlocated': 0}
+unlocated = OrderedDict()
 
-places, unlocated = OrderedDict(), OrderedDict()
-rows_read = set()
-
-for key, found in ex['results'].items():
-    ri, ci = (int(x) for x in key.split('::'))
-    rows_read.add(ri)
-    rec = rows[ri]
-    role = col_names[ci]
-    for p in found:
-        mention = {
-            'ref': rec['reference'], 'tna': rec['tna_id'], 'date': rec['date'],
-            'title': rec['short_title'], 'role': role, 'context': p.get('context') or '',
-        }
-        # The county itself is named in nearly every entry and resolves every time, so it would arrive
-        # as one enormous dot over the middle of Essex telling the reader what they already know. It is
-        # the container of this whole dataset, not a finding within it.
-        if p['name'].strip().lower() == 'essex':
+for county, meta in manifest.items():
+    path = os.path.join(SWEEP, county.replace(' ', '_') + '.jsonl')
+    if not os.path.exists(path):
+        continue
+    seen_cases, county_mentions, readings = set(), [], 0
+    for line in open(path):
+        try:
+            r = json.loads(line)
+        except ValueError:
             continue
-        m = p.get('match') or {}
-        if m.get('lng') is None or m.get('lat') is None:
-            # Named, but WHG could not locate it inside Essex. Kept and counted: about half of these
-            # are real places the gazetteer does not yet hold.
-            u = unlocated.setdefault(p['name'], {'name': p['name'], 'count': 0})
-            u['count'] += 1
-            continue
-        pl = places.setdefault(m.get('id') or p['name'], {
-            'name': m.get('title') or p['name'], 'whg_id': m.get('id') or '',
-            'lon': m['lng'], 'lat': m['lat'], 'mentions': [],
-        })
-        pl['mentions'].append(mention)
+        readings += 1
+        seen_cases.add(r['ref'])
+        for p in r.get('places') or []:
+            # The county itself is named in nearly every entry of its own set and resolves every time,
+            # so it would be one huge dot saying what the reader already knows. It is the container of
+            # that subset, not a finding within it.
+            if p['name'].strip().lower() == county.strip().lower():
+                continue
+            m = p.get('match') or {}
+            if m.get('lng') is None or m.get('lat') is None:
+                u = unlocated.setdefault((county, p['name']),
+                                         {'name': p['name'], 'county': county, 'count': 0})
+                u['count'] += 1
+                totals['unlocated'] += 1
+                continue
+            key = m.get('id') or p['name']
+            pl = places.setdefault(key, {
+                'name': m.get('title') or p['name'], 'whg_id': m.get('id') or '',
+                'lon': round(m['lng'], 5), 'lat': round(m['lat'], 5),
+                'county': county, 'roles': {}, 'cases': set(),
+            })
+            pl['roles'][r['col']] = pl['roles'].get(r['col'], 0) + 1
+            pl['cases'].add(r['ref'])
+            county_mentions.append({'p': key, 'ref': r['ref'], 'tna': r['tna'], 'date': r['date'],
+                                    'title': r['title'], 'role': r['col'],
+                                    'ctx': (p.get('context') or '')[:220]})
+            totals['mentions'] += 1
+    mentions_by_county[county] = county_mentions
+    totals['records'] += meta.get('records', 0)
+    totals['readings'] += readings
+    progress.append({'county': county, 'status': meta.get('status', 'running'),
+                     'records': meta.get('records', 0), 'cases': len(seen_cases),
+                     'mentions': len(county_mentions)})
 
-places = [p for p in places.values()]
-places.sort(key=lambda p: -len(p['mentions']))
-lons = [p['lon'] for p in places]; lats = [p['lat'] for p in places]
+for county, ms in mentions_by_county.items():
+    json.dump(ms, open(os.path.join(OUT, 'mentions', county.replace(' ', '_') + '.json'), 'w'))
 
-out = {
+out_places = []
+for p in places.values():
+    p['cases'] = len(p['cases'])
+    out_places.append(p)
+out_places.sort(key=lambda p: -p['cases'])
+
+lons = [p['lon'] for p in out_places]; lats = [p['lat'] for p in out_places]
+json.dump({
     'generated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-    'county': 'Essex', 'container': 'ukhc:ESE', 'series': 'TNA REQ 2',
-    'fields_read': ex['colNames'],
-    'records_total': len(rows), 'records_read': len(rows_read),
-    'centre': [sum(lons) / len(lons), sum(lats) / len(lats)] if lons else [0.5, 51.8],
+    'series': 'TNA REQ 2', 'fields_read': ['subject', 'plaintiffs'],
+    'totals': totals, 'counties_done': sum(1 for p in progress if p['status'] == 'done'),
+    'counties_total': 52,
     'bounds': [[min(lons), min(lats)], [max(lons), max(lats)]] if lons else None,
-    'places': places,
-    'unlocated': sorted(unlocated.values(), key=lambda u: (-u['count'], u['name'])),
-}
-json.dump(out, open(out_path, 'w'), indent=1)
-print('records read %d/%d · places %d · mentions %d · unlocated names %d' % (
-    out['records_read'], out['records_total'], len(places),
-    sum(len(p['mentions']) for p in places), len(out['unlocated'])))
+    'places': out_places,
+}, open(os.path.join(OUT, 'places.json'), 'w'))
+json.dump({'counties': sorted(progress, key=lambda c: -c['mentions']),
+           'unlocated': sorted(unlocated.values(), key=lambda u: (-u['count'], u['name']))},
+          open(os.path.join(OUT, 'progress.json'), 'w'))
+
+print('counties %d (%d complete) · records %d · readings %d · places %d · mentions %d · unlocated %d'
+      % (len(progress), sum(1 for p in progress if p['status'] == 'done'), totals['records'],
+         totals['readings'], len(out_places), totals['mentions'], totals['unlocated']))

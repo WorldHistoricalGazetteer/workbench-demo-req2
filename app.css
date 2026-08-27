@@ -86,3 +86,17 @@ fieldset em { color: var(--muted); font-style: normal; font-size: .82rem; font-v
 @media (max-width: 620px) {
   #panel { top: .5rem; left: .5rem; right: .5rem; width: auto; max-height: 60vh; }
 }
+
+/* Sweep progress — how much of England and Wales has been read so far. */
+#progress-wrap { margin: 0 0 .9rem; }
+#progress-bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+#progress-fill { display: block; height: 100%; width: 0; background: var(--subject); transition: width .4s; }
+#progress-note { margin-top: .3rem; }
+
+#county-wrap { display: block; font-size: .8rem; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .06em; margin-bottom: .7rem; }
+#county { display: block; width: 100%; margin-top: .25rem; padding: .4rem .5rem; font: inherit;
+  font-size: .92rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; }
+
+.pop .loading { color: var(--muted); font-size: .88rem; }
+.pop .county { font-size: .78rem; color: var(--muted); }
