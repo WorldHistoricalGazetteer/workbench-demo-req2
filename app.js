@@ -56,21 +56,10 @@ function refresh() {
 }
 
 // ── popup ────────────────────────────────────────────────────────────────────
-// Catalogue detail is embedded, because Discovery sends no CORS header and a static site therefore
-// cannot call it from the browser. We try anyway, once per case, and quietly keep the embedded copy
-// when the request is blocked — so the popup would simply get richer if TNA ever allowed it.
-async function enrich(tnaId, el) {
-  if (!tnaId) return;
-  try {
-    const r = await fetch(`https://discovery.nationalarchives.gov.uk/API/records/v1/details/${encodeURIComponent(tnaId)}`,
-      { headers: { Accept: 'application/json' } });
-    if (!r.ok) return;
-    const j = await r.json();
-    const extra = [j.heldBy, j.physicalDescription, j.accessConditions].filter(Boolean).join(' · ');
-    if (extra) { el.textContent = extra; el.hidden = false; }
-  } catch (_) { /* no CORS — the embedded description already shown is the fallback */ }
-}
-
+// Catalogue detail is embedded in data/places.json rather than fetched. Discovery serves no
+// Access-Control-Allow-Origin header, so a static site cannot call its API from the browser at all —
+// there is no fallback to arrange and no point attempting one. Every case links out to the
+// authoritative record instead.
 function popupHTML(place) {
   const shown = place.mentions.filter(m => active.has(m.role));
   const cases = new Set(shown.map(m => m.ref));
@@ -81,7 +70,6 @@ function popupHTML(place) {
       ${m.date ? ` <span class="ctx">${esc(m.date)}</span>` : ''}
       ${m.title ? `<span class="ctx">${esc(m.title)}</span>` : ''}
       ${m.context ? `<span class="ctx">&ldquo;${esc(m.context)}&rdquo;</span>` : ''}
-      <span class="ctx tna-extra" data-tna="${esc(m.tna)}" hidden></span>
     </li>`).join('');
   return `<div class="pop">
       <h2>${esc(place.name)}</h2>
@@ -93,9 +81,8 @@ function popupHTML(place) {
 
 function openPlace(i) {
   const p = DB.places[i];
-  const popup = new maplibregl.Popup({ maxWidth: '23rem' })
+  new maplibregl.Popup({ maxWidth: '23rem' })
     .setLngLat([p.lon, p.lat]).setHTML(popupHTML(p)).addTo(map);
-  popup.getElement().querySelectorAll('.tna-extra').forEach(el => enrich(el.dataset.tna, el));
   map.easeTo({ center: [p.lon, p.lat], duration: 500 });
 }
 
@@ -139,12 +126,10 @@ function wireSearch() {
 
   map = new maplibregl.Map({
     container: 'map', style: STYLE, center: DB.centre || [0.5, 51.8], zoom: 8.4,
-    // Liberty declares no attribution of its own, so all of it is supplied here.
+    // The Liberty style credits OSM, OpenFreeMap and OpenMapTiles itself, so adding those again only
+    // made the bar say everything twice. This is what the style cannot know about.
     attributionControl: { compact: true, customAttribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors · '
-      + '<a href="https://openfreemap.org/">OpenFreeMap</a> · '
-      + '<a href="https://www.openmaptiles.org/">OpenMapTiles</a> · '
-      + 'Places: <a href="https://whgazetteer.org/">WHG</a> · '
+      'Places: <a href="https://whgazetteer.org/">WHG</a> · '
       + 'Catalogue: <a href="https://discovery.nationalarchives.gov.uk/">TNA</a> (OGL v3.0)' },
   });
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
