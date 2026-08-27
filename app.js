@@ -141,7 +141,11 @@ function wireSearch() {
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 120 }), 'bottom-right');
 
-  map.on('load', () => {
+  // 'style.load', not 'load'. A style with many sources may never reach the fully-idle state that
+  // 'load' waits for — WHG's own whg-context style does not, on a good connection, because some of its
+  // ten sources keep fetching. Layers can be added as soon as the style is parsed, and hanging the
+  // data off the stricter event meant a blank page behind a "Loading places…" overlay that never left.
+  map.on('style.load', () => {
     map.addSource('places', { type: 'geojson', data: toGeoJSON(DB.places) });
     map.addLayer({
       id: 'places-circles', type: 'circle', source: 'places',
@@ -178,6 +182,8 @@ function wireSearch() {
     console.warn('[map]', e && e.error && e.error.message);
     $('#loading').classList.add('done');
   });
+  // Last resort: whatever the basemap is doing, stop covering the map after a few seconds.
+  setTimeout(() => $('#loading').classList.add('done'), 8000);
 
   document.querySelectorAll('#roles input').forEach(cb => cb.addEventListener('change', () => {
     cb.checked ? active.add(cb.dataset.role) : active.delete(cb.dataset.role);
