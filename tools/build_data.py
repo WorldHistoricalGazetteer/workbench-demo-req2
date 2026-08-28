@@ -127,11 +127,20 @@ for group in by_name.values():
         alias[p['whg_id']] = host['whg_id']
     merged.extend(kept)
 
-# Point the mention records at whichever place survived the merge.
-for ms in mentions_by_county.values():
+# Point the mention records at whichever place survived the merge — and then deduplicate, because two
+# records for one town each held their own copy of a case, and repointing both at the survivor listed
+# it twice. A case is one fact about a place in a given role however many gazetteer entries it matched.
+for county, ms in mentions_by_county.items():
+    kept, seen_m = [], set()
     for m in ms:
-        if m['p'] in alias:
-            m['p'] = alias[m['p']]
+        m['p'] = alias.get(m['p'], m['p'])
+        key = (m['p'], m['ref'], m['role'])
+        if key in seen_m:
+            continue
+        seen_m.add(key)
+        kept.append(m)
+    mentions_by_county[county] = kept
+totals['mentions'] = sum(len(ms) for ms in mentions_by_county.values())
 
 out_places = []
 for p in merged:
