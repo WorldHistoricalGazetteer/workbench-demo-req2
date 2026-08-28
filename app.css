@@ -26,6 +26,15 @@ body {
 #panel h1 { font-size: 1.28rem; line-height: 1.2; margin: 0 2rem .5rem 0; font-weight: 600; }
 .lede { margin: 0 0 .9rem; }
 .note { font-size: .82rem; color: var(--muted); line-height: 1.45; margin: .8rem 0 0; }
+
+/* The caveat is the first thing after the standfirst, not a footnote: the map is an experiment and
+   demonstrably contains wrong places, and a reader should know that before reading anything off it. */
+.caveat { border: 1px solid var(--subject); border-left-width: 3px; border-radius: 2px;
+  padding: .7rem .85rem; margin: 0 0 1rem; background: rgba(179, 69, 47, .06);
+  display: flex; flex-direction: column; gap: .5rem; }
+.caveat p { font-size: .84rem; line-height: 1.5; margin: 0; color: var(--ink); }
+.caveat p:first-child { font-size: .9rem; }
+.caveat em { font-style: italic; }
 .credit { border-top: 1px solid var(--rule); padding-top: .6rem; }
 a { color: #7a3b28; }
 

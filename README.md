@@ -149,6 +149,10 @@ autonomously and one that must.
 
 This is a demonstration, and it should be read as one.
 
+- **This is an experiment, and a fair number of these places are wrong.** Two found by clicking on the
+  map: "the Court of Admiralty" placed at a quarry in Dorset, and *CSP* — a cataloguer's initials —
+  placed at the Chartered Society of Physiotherapy, briefly the sixth-busiest location in Tudor
+  litigation. Both are fixed, and both were invisible in the totals. Assume others remain.
 - **Every match here was accepted automatically.** A small model reading early-modern legal abstracts
   gets most names and misses some, and nothing on this map has been confirmed by a person. Points are
   what the pipeline concluded unaided; the Workbench's review tools exist for when you want to settle
