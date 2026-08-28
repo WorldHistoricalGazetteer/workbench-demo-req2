@@ -278,15 +278,22 @@ function wireSearch() {
         // A place in twenty cases should weigh more than one in a single case, but not twenty times
         // more, or one county town drowns its neighbours.
         'heatmap-weight': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 0.35, 6, 1],
-        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 0.9, 8, 1.6],
-        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 14, 8, 34],
-        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 6, .85, 8.5, 0],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 1.1, 8, 1.9],
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 16, 8, 38],
+        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 6, .9, 8.5, 0],
+        // Magma. The earlier ramp ran tan to brick and read as a stain — and worse, it was arbitrary:
+        // three browns picked by eye are not ordered, so a reader could not tell a busy parish from a
+        // quiet one without counting. Magma is perceptually uniform, so equal steps in litigation read
+        // as equal steps in colour, and it happens to be vivid against a basemap we have deliberately
+        // drained of colour. Violet where cases are thin, through magenta and orange, to near-white
+        // where a county town blazes.
         'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
-          0,    'rgba(179,69,47,0)',
-          0.15, 'rgba(214,168,120,0.45)',
-          0.4,  'rgba(203,124,74,0.65)',
-          0.7,  'rgba(179,69,47,0.8)',
-          1,    'rgba(122,45,28,0.92)'],
+          0,    'rgba(12,7,45,0)',
+          0.12, 'rgba(59,15,112,0.55)',
+          0.32, 'rgba(140,41,129,0.72)',
+          0.52, 'rgba(222,73,104,0.82)',
+          0.74, 'rgba(254,159,109,0.88)',
+          1,    'rgba(252,253,191,0.95)'],
       },
     });
     map.addLayer({

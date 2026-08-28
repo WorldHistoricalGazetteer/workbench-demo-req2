@@ -86,7 +86,9 @@ right parish, and a question for review rather than grounds for throwing the men
 ## What the map shows
 
 - **Zoomed out, a heatmap** — where litigation clustered. At national scale a thousand overlapping
-  dots say only "there were cases"; density is the question that scale can answer.
+  dots say only "there were cases"; density is the question that scale can answer. The ramp is magma,
+  chosen because it is perceptually uniform: equal steps in the number of cases read as equal steps in
+  colour, which a hand-picked set of browns cannot promise.
 - **Zoomed in, individual places.** The two cross-fade between z6 and z8, so an individual point
   appears exactly when it starts to mean something.
 - **Each point is a place**, sized by how many cases mention it.
