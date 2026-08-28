@@ -18,6 +18,11 @@ const ROLES = {
   subject:    { label: 'disputed property',     colour: '#b3452f' },
   plaintiffs: { label: "plaintiff's residence", colour: '#2f6b8f' },
 };
+// A place named in BOTH fields is not a shade of either — it is somewhere people lived AND litigated
+// over, which is a different kind of place from an outlying manor that only ever appears as disputed
+// property. Colouring it by whichever role happened to be commoner threw that away. Purple because it
+// reads as the two mixed rather than as a third unrelated thing.
+const BOTH = { label: 'both', colour: '#7b3f8f' };
 const DISCOVERY = id => `https://discovery.nationalarchives.gov.uk/details/r/${id}`;
 // Left padding clears the panel, so fitting to the data never parks points underneath it.
 const FIT_PAD = { top: 40, right: 40, bottom: 40, left: 360 };
@@ -44,10 +49,13 @@ function toGeoJSON() {
   DB.places.forEach((p, i) => {
     const n = visible(p);
     if (!n) return;
-    const shown = Object.keys(p.roles).filter(r => active.has(r));
-    const dominant = shown.sort((a, b) => p.roles[b] - p.roles[a])[0] || 'subject';
+    const shown = Object.keys(p.roles).filter(r => active.has(r) && p.roles[r]);
+    // 'both' is derived from what is currently SHOWN, so hiding a role collapses a both-place back to
+    // the role that remains — the filter keeps meaning what it says.
+    const kind = shown.length > 1 ? 'both'
+               : shown.sort((a, b) => p.roles[b] - p.roles[a])[0] || 'subject';
     feats.push({ type: 'Feature', id: i, geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
-                 properties: { idx: i, name: p.name, cases: p.cases, role: dominant } });
+                 properties: { idx: i, name: p.name, cases: p.cases, role: kind } });
   });
   return { type: 'FeatureCollection', features: feats };
 }
@@ -60,6 +68,10 @@ function refresh() {
       t + ((county && p.county !== county) ? 0 : (p.roles[role] || 0)), 0);
     $('#n-' + role).textContent = `(${n.toLocaleString()})`;
   }
+  const both = DB.places.filter(p => (!county || p.county === county)
+    && Object.keys(p.roles).filter(r => active.has(r) && p.roles[r]).length > 1).length;
+  $('#n-both').textContent = `(${both.toLocaleString()})`;
+  $('#both-key').hidden = !both;
 }
 
 // ── popup ────────────────────────────────────────────────────────────────────
@@ -211,7 +223,8 @@ function wireSearch() {
         // Area, not radius, follows the case count, so ten cases read as ten times one rather than a
         // hundred times.
         'circle-radius': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 4, 3, 9, 8, 20],
-        'circle-color': ['match', ['get', 'role'], 'plaintiffs', ROLES.plaintiffs.colour, ROLES.subject.colour],
+        'circle-color': ['match', ['get', 'role'],
+          'plaintiffs', ROLES.plaintiffs.colour, 'both', BOTH.colour, ROLES.subject.colour],
         // A detailed basemap is busy, so the points need to hold their own.
         'circle-opacity': ['interpolate', ['linear'], ['zoom'], 6, 0, 8, .85],
         'circle-stroke-width': 1.5, 'circle-stroke-color': '#fff',

@@ -5,6 +5,7 @@
   --rule: #ded8cd;
   --subject: #b3452f;      /* disputed property */
   --plaintiffs: #2f6b8f;   /* plaintiff's residence */
+  --both: #7b3f8f;         /* named in both fields */
   --panel-w: 22rem;
 }
 * { box-sizing: border-box; }
@@ -49,6 +50,12 @@ fieldset em { color: var(--muted); font-style: normal; font-size: .82rem; font-v
 .key { width: .8rem; height: .8rem; border-radius: 50%; flex: none; }
 .key-subject { background: var(--subject); }
 .key-plaintiffs { background: var(--plaintiffs); }
+.key-both { background: var(--both); }
+.both-key { display: flex; align-items: center; gap: .45rem; font-size: .88rem;
+  margin: .3rem 0 0; padding-top: .3rem; border-top: 1px dotted var(--rule); color: var(--ink); }
+.both-key em { font-style: italic; }
+.both-key em#n-both { font-style: normal; color: var(--muted); font-size: .82rem;
+  font-variant-numeric: tabular-nums; }
 
 #search-wrap { display: block; font-size: .8rem; color: var(--muted);
   text-transform: uppercase; letter-spacing: .06em; }
@@ -81,6 +88,7 @@ fieldset em { color: var(--muted); font-style: normal; font-size: .82rem; font-v
   border-radius: 2px; color: #fff; }
 .pop .role-subject { background: var(--subject); }
 .pop .role-plaintiffs { background: var(--plaintiffs); }
+.pop .role-both { background: var(--both); }
 .pop .ctx { color: var(--muted); display: block; }
 
 @media (max-width: 620px) {

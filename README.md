@@ -86,6 +86,10 @@ and those are precisely the places a historian would want to contribute back.
   remembers the field it came from:
   - *disputed property* — named in the **Subject** field
   - *plaintiff's residence* — named in the **Plaintiffs** field
+  - *both* — named in each, in different cases. This is its own category rather than a shade of the
+    other two: somewhere people both lived and litigated over is a different kind of place from an
+    outlying manor that only ever appears as a thing fought about. Hiding either role collapses a
+    both-place back to whichever remains, so the filter keeps meaning what it says.
 - **Clicking a place** lists the cases that mention it, each with its catalogue reference, date and
   short title, and a link to the full record in Discovery.
 
