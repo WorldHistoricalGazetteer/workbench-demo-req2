@@ -77,11 +77,22 @@ and those are precisely the places a historian would want to contribute back. Th
 per county rather than all at once: across a whole sweep the list is thousands of unfamiliar words
 and tells a reader nothing, while for one county it is a working document.
 
-A related looseness matters here. A clerk writing "lands at Tolleshunt" means one of the three
-parishes that share the name, and an exact-name matcher rejects all three — so a place the gazetteer
-knows perfectly well ends up among the misses. Inside a county, a name may now match the qualified
-names it begins, and the result is marked *approximate*: the right parish group, not necessarily the
-right parish, and a question for review rather than grounds for throwing the mention away.
+The matching is deliberately strict: a name must match a gazetteer record exactly, or it goes on the
+not-located list. That has a visible cost. A clerk writing "lands at Tolleshunt" means one of the
+three parishes sharing that name, and none of them is called plain *Tolleshunt*, so the mention is
+not placed.
+
+Loosening it was tried and withdrawn, which is worth recording because the idea is an obvious one.
+Allowing a name to match the longer names it begins rescued Tolleshunt — and produced 312 matches
+across the sweep of which only 20 attached to a real place-name qualifier. The rest attached to
+modern features that merely share a first word: Littleton Colliery, Haywood Hospital, Sir Christopher
+Hatton School, and *Admiralty Quarries* on Portland, which is how "the Court of Admiralty" came to be
+mapped as a quarry in Dorset. Excluding feature nouns still left half the survivors wrong, and wrong
+in the worst way — Henry VIII, John Smith Antiques.
+
+Placing people is the one failure this design exists to prevent, so the trade was refused. An
+unplaced Tolleshunt is an honest result and a two-second job for anyone who knows Essex; a confidently
+placed Henry VIII is neither.
 
 ## What the map shows
 

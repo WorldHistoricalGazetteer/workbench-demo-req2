@@ -44,8 +44,10 @@
     <details id="unlocated-wrap" hidden>
       <summary>Named but not located in <span id="unlocated-county"></span> <em id="n-unlocated"></em></summary>
       <p class="note">Names the extractor found that WHG&rsquo;s index could not match inside this
-         county. Some are real places the gazetteer does not yet know; the rest are mostly
-         people&rsquo;s names, which is exactly what searching inside a county filters out.</p>
+         county. Matching is strict &mdash; a name must match a record exactly &mdash; so this list
+         holds three kinds of thing: real places the gazetteer does not yet know, names the sources
+         spell differently from the index, and people, which is what searching inside a county is for.
+         Loosening the match to catch the first two reliably placed the third, so it was not kept.</p>
       <ul id="unlocated"></ul>
     </details>
 
@@ -53,8 +55,8 @@
       matched and located without anyone intervening &mdash; that is the point. It is not a black box,
       though: the Workbench stops for a person wherever you want it to. Its review stage offers the
       rival candidates for an ambiguous name, takes a rejection, lets you search by hand for one the
-      index missed and record why. Nothing here needed that; anyone publishing from it would use
-      it.</p>
+      index missed and record why. Nothing here needed that; anyone publishing from it would use it
+      &mdash; and the not-located list above is where they would start.</p>
 
     <p class="note">
       Built with the World Historical Gazetteer <strong>Workbench</strong>.
