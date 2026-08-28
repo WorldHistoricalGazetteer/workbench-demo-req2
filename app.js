@@ -232,6 +232,7 @@ function wireSearch() {
   sel.addEventListener('change', () => {
     county = sel.value;
     refresh();
+    renderUnlocated();
     const pts = DB.places.filter(p => !county || p.county === county);
     if (pts.length) {
       const lons = pts.map(p => p.lon), lats = pts.map(p => p.lat);
@@ -240,9 +241,21 @@ function wireSearch() {
     }
   });
 
-  $('#n-unlocated').textContent = `(${PROG.unlocated.length.toLocaleString()})`;
-  $('#unlocated').innerHTML = PROG.unlocated.slice(0, 400)
-    .map(u => `<li>${esc(u.name)}${u.count > 1 ? ` <em>&times;${u.count}</em>` : ''}</li>`).join('');
+  // Across a whole sweep this list runs to thousands of names and tells the reader nothing: a wall of
+  // unfamiliar words with no way in. Per county it is a working document — the names a historian of
+  // that county could actually recognise, and the shortlist of places worth contributing to the
+  // gazetteer. So it appears only once a county is chosen.
+  function renderUnlocated() {
+    const wrap = $('#unlocated-wrap');
+    if (!county) { wrap.hidden = true; wrap.open = false; return; }
+    const rows = PROG.unlocated.filter(u => u.county === county);
+    wrap.hidden = !rows.length;
+    $('#unlocated-county').textContent = county;
+    $('#n-unlocated').textContent = `(${rows.length.toLocaleString()})`;
+    $('#unlocated').innerHTML = rows
+      .map(u => `<li>${esc(u.name)}${u.count > 1 ? ` <em>&times;${u.count}</em>` : ''}</li>`).join('');
+  }
+  renderUnlocated();
 
   map = new maplibregl.Map({
     container: 'map', style: await basemapStyle(), center: [-2.2, 52.6], zoom: 5.6,

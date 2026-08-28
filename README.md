@@ -71,9 +71,17 @@ rather offer *Clement Wrighte* than miss *Great Easton* — and personal names a
 it over-offers. But there is no place in Essex called *John Cowlande*, so the containment search
 simply returns nothing, and the name falls away without anyone having to write a rule about surnames.
 
-Names that match nothing are not discarded. They are flagged, because in this corpus roughly half of
+Names that match nothing are not discarded. They are flagged, because in this corpus a good share of
 them are **real places the gazetteer does not yet know** — *Honyngforde*, *Laybroke*, *Medesyde* —
-and those are precisely the places a historian would want to contribute back.
+and those are precisely the places a historian would want to contribute back. The panel lists them
+per county rather than all at once: across a whole sweep the list is thousands of unfamiliar words
+and tells a reader nothing, while for one county it is a working document.
+
+A related looseness matters here. A clerk writing "lands at Tolleshunt" means one of the three
+parishes that share the name, and an exact-name matcher rejects all three — so a place the gazetteer
+knows perfectly well ends up among the misses. Inside a county, a name may now match the qualified
+names it begins, and the result is marked *approximate*: the right parish group, not necessarily the
+right parish, and a question for review rather than grounds for throwing the mention away.
 
 ## What the map shows
 
