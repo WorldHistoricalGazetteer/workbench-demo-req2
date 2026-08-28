@@ -18,7 +18,7 @@ point count ever justifies PMTiles.
 This does no extraction and no matching. Every place, coordinate and identifier was established by the
 Workbench; this only groups mentions by place and drops what has not been reached yet.
 """
-import datetime, json, os, sys
+import datetime, json, math, os, sys
 from collections import OrderedDict
 
 SWEEP, OUT = sys.argv[1], sys.argv[2]
@@ -47,11 +47,18 @@ for county in counties:
     if not os.path.exists(path):
         continue
     seen_cases, county_mentions, readings = set(), [], 0
+    seen_units = set()
     for line in open(path):
         try:
             r = json.loads(line)
         except ValueError:
             continue
+        # A reading can appear twice: the ingest was stopped and restarted more than once, and a
+        # restart reads the "already done" set before the process it replaced has finished writing.
+        # Harmless to the extraction, but it put every case in a popup twice.
+        if r.get('unit') in seen_units:
+            continue
+        seen_units.add(r.get('unit'))
         readings += 1
         # The earliest Essex readings predate the sweep layout and carry no county key; the file they
         # are in is the answer.
@@ -90,14 +97,50 @@ for county in counties:
     progress.append({'county': county, 'records': records, 'cases': len(seen_cases),
                      'mentions': len(county_mentions)})
 
-for county, ms in mentions_by_county.items():
-    json.dump(ms, open(os.path.join(OUT, 'mentions', county.replace(' ', '_') + '.json'), 'w'))
+# One real place can match several gazetteer records — Great Yarmouth arrived as both a GeoNames and
+# an OSM entry, and the map drew two markers a few hundred metres apart with the cases split between
+# them. Merge on identical name within the same county and within about 3 km, keeping the record with
+# the most cases as the survivor. Deliberately conservative: same name, same county, near enough to be
+# the same settlement — two genuinely distinct places of one name in one county stay distinct.
+def near(a, b, km=3.0):
+    dlat = (a['lat'] - b['lat']) * 111.0
+    dlon = (a['lon'] - b['lon']) * 111.0 * math.cos(math.radians((a['lat'] + b['lat']) / 2))
+    return (dlat * dlat + dlon * dlon) ** 0.5 <= km
+
+
+by_name = OrderedDict()
+for p in places.values():
+    by_name.setdefault((p['county'], p['name'].strip().lower()), []).append(p)
+
+merged, alias = [], {}
+for group in by_name.values():
+    group.sort(key=lambda p: -len(p['cases']))
+    kept = []
+    for p in group:
+        host = next((k for k in kept if near(k, p)), None)
+        if host is None:
+            kept.append(p)
+            continue
+        for role, n in p['roles'].items():
+            host['roles'][role] = host['roles'].get(role, 0) + n
+        host['cases'] |= p['cases']
+        alias[p['whg_id']] = host['whg_id']
+    merged.extend(kept)
+
+# Point the mention records at whichever place survived the merge.
+for ms in mentions_by_county.values():
+    for m in ms:
+        if m['p'] in alias:
+            m['p'] = alias[m['p']]
 
 out_places = []
-for p in places.values():
+for p in merged:
     p['cases'] = len(p['cases'])
     out_places.append(p)
 out_places.sort(key=lambda p: -p['cases'])
+
+for county, ms in mentions_by_county.items():
+    json.dump(ms, open(os.path.join(OUT, 'mentions', county.replace(' ', '_') + '.json'), 'w'))
 
 lons = [p['lon'] for p in out_places]; lats = [p['lat'] for p in out_places]
 json.dump({
