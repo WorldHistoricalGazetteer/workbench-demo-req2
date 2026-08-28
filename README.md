@@ -32,28 +32,28 @@ output of running it over county after county — 52 historic counties, some 18,
 
 ## How it was made
 
-Nothing here was hand-built. Every step is a feature of the Workbench, in the browser:
+The catalogue comes first, and that part is not the Workbench: TNA's Discovery API is open and needs
+no key, so an ordinary script filters REQ 2 to Elizabethan dates and to entries whose `County` field
+names a historic county — between a handful (Cardiganshire: 5) and nine hundred (Essex: 913) apiece.
+Anyone could write it, and it produces nothing more interesting than a table.
 
-1. **Fetch the catalogue.** TNA's Discovery API is open and needs no key. Filtering REQ 2 to
-   Elizabethan dates, then to entries whose `County` field names one historic county, gives between a
-   handful (Cardiganshire: 5) and nine hundred (Essex: 913) records apiece.
-2. **Reconcile the county.** The Workbench matches the *county* column against
+What the Workbench does is everything after that, and it is the part that has always been laborious:
+
+1. **Reconcile the county.** The *county* column is matched against
    [UK Historic Counties](https://whgazetteer.org/), resolving every row in a county's set to a single
    polygon — `ukhc:ESE` for Essex, `ukhc:YRK` for Yorkshire, and so on.
-3. **Read the prose, row by row.** A small language model running on WHG's own server reads the
-   *Subject* and *Plaintiffs* fields of each record and returns the place names in them.
-4. **Search inside the county.** Each row's names are looked up in WHG's index **constrained to that
+2. **Read the prose, row by row.** A small language model reads the *Subject* and *Plaintiffs* fields
+   of each record and returns the place names in them. The same model serves this interactively on
+   WHG's own server; for a corpus this size it was run on GPUs at the Pitt Center for Research
+   Computing, with identical prompt and settings, because the model is the expensive half of a reading
+   and it is stateless. Every judgement about what counts as a place stayed on WHG's side.
+3. **Search inside the county.** Each row's names are looked up in WHG's index **constrained to that
    row's own county polygon**. This is the step that makes the result trustworthy, and it is worth
    dwelling on — see below.
-5. **Explode to one row per mention.** The table is rebuilt with a row for each (record × field ×
+4. **Explode to one row per mention.** The table is rebuilt with a row for each (record × field ×
    place), so every mention keeps its case reference, its date, and the field it came from.
 
 The result is this map. The data files it reads are the Workbench's own output, unedited.
-
-**Counties are visited in an order that jumps around the country** — a farthest-point traversal from
-Essex, so each county read is the one furthest from everything read so far. The map therefore spreads
-across England and Wales early rather than creeping outwards from one corner, and a partial sweep is
-still representative.
 
 ## Why searching inside the county matters
 
@@ -139,8 +139,6 @@ This is a demonstration, and it should be read as one.
   the doubtful ones, and were not used.
 - **Two fields, not all of them.** Only *Subject* and *Plaintiffs* are read. Defendants' residences —
   the other half of the litigants — are not here.
-- **The sweep may be partly done.** The panel says how many counties have been read. Everything shown
-  is complete for the counties listed; the rest are simply not there yet.
 - **Coordinates are modern.** They come from matching against present-day and historical gazetteer
   records, so a point marks roughly where a named place is, not the extent of a manor or parish in
   1590.
