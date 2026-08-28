@@ -27,6 +27,70 @@ const DISCOVERY = id => `https://discovery.nationalarchives.gov.uk/details/r/${i
 // Left padding clears the panel, so fitting to the data never parks points underneath it.
 const FIT_PAD = { top: 40, right: 40, bottom: 40, left: 360 };
 
+// ── basemap: OSM's colours, turned down ──────────────────────────────────────
+// Liberty is a general-purpose style, coloured to be read on its own: green woods, blue water, ochre
+// motorways. Under a thematic overlay all of that competes with the data — the eye cannot tell a red
+// A-road from a red marker at a glance. Rather than swap to a grey style and lose the context that
+// makes this map worth looking at, every colour in the style is pulled towards grey and lightened a
+// little, so the roads, rivers and coastline stay legible as SHAPE while surrendering colour to the
+// points drawn on top.
+const SATURATION = 0.28;   // of the original; 0 would be fully grey
+const LIGHTEN = 0.13;      // toward white, so the markers sit on a paler ground
+
+function toHsl(c) {
+  let r, g, b, a = 1;
+  let m = /^#([0-9a-f]{3,8})$/i.exec(c.trim());
+  if (m) {
+    let h = m[1];
+    if (h.length === 3 || h.length === 4) h = [...h].map(x => x + x).join('');
+    r = parseInt(h.slice(0, 2), 16) / 255; g = parseInt(h.slice(2, 4), 16) / 255;
+    b = parseInt(h.slice(4, 6), 16) / 255;
+    if (h.length === 8) a = parseInt(h.slice(6, 8), 16) / 255;
+  } else if ((m = /^rgba?\(([^)]+)\)$/i.exec(c.trim()))) {
+    const p = m[1].split(',').map(x => parseFloat(x));
+    r = p[0] / 255; g = p[1] / 255; b = p[2] / 255;
+    if (p.length > 3) a = p[3];
+  } else return null;
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2;
+  let h = 0, sat = 0;
+  if (mx !== mn) {
+    const d = mx - mn;
+    sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+    h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h /= 6;
+  }
+  return { h, s: sat, l, a };
+}
+
+function hslToCss({ h, s, l, a }) {
+  return `hsla(${(h * 360).toFixed(1)}, ${(s * 100).toFixed(1)}%, ${(l * 100).toFixed(1)}%, ${a})`;
+}
+
+// Colours hide inside expressions (`['interpolate', …, 8, '#fff', 14, '#eee']`), so walk everything
+// and convert any string that parses as a colour, leaving the structure untouched.
+function muted(node) {
+  if (typeof node === 'string') {
+    const hsl = toHsl(node);
+    if (!hsl) return node;
+    hsl.s *= SATURATION;
+    hsl.l = hsl.l + (1 - hsl.l) * LIGHTEN;
+    return hslToCss(hsl);
+  }
+  if (Array.isArray(node)) return node.map(muted);
+  if (node && typeof node === 'object') {
+    const out = {};
+    for (const k of Object.keys(node)) out[k] = muted(node[k]);
+    return out;
+  }
+  return node;
+}
+
+async function basemapStyle() {
+  const style = await fetch(STYLE).then(r => r.json());
+  style.layers = style.layers.map(l => (l.paint ? { ...l, paint: muted(l.paint) } : l));
+  return style;
+}
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
   c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -181,7 +245,7 @@ function wireSearch() {
     .map(u => `<li>${esc(u.name)}${u.count > 1 ? ` <em>&times;${u.count}</em>` : ''}</li>`).join('');
 
   map = new maplibregl.Map({
-    container: 'map', style: STYLE, center: [-2.2, 52.6], zoom: 5.6,
+    container: 'map', style: await basemapStyle(), center: [-2.2, 52.6], zoom: 5.6,
     // The Liberty style credits OSM, OpenFreeMap and OpenMapTiles itself; this is what it cannot know.
     attributionControl: { compact: true, customAttribution:
       'Places: <a href="https://whgazetteer.org/">WHG</a> · '

@@ -169,7 +169,9 @@ authoritative record in Discovery.
 - Place matching and coordinates: [World Historical Gazetteer](https://whgazetteer.org/).
 - Basemap: [OpenFreeMap](https://openfreemap.org/) (Liberty), built from
   [OpenStreetMap](https://www.openstreetmap.org/copyright) data via
-  [OpenMapTiles](https://www.openmaptiles.org/).
+  [OpenMapTiles](https://www.openmaptiles.org/). Its colours are pulled towards grey in the browser
+  before the map is built, so the roads and rivers stay legible as shape while surrendering colour to
+  the data drawn over them.
 - Prompted by Sharon Howard's work on this series, and by Daniel Gosling's cataloguing of it.
 
 Code in this repository is MIT-licensed. The derived data follows the licences of its sources.
