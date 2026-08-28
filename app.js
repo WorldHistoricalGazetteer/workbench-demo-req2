@@ -277,9 +277,14 @@ function wireSearch() {
       paint: {
         // A place in twenty cases should weigh more than one in a single case, but not twenty times
         // more, or one county town drowns its neighbours.
-        'heatmap-weight': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 0.35, 6, 1],
-        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 1.1, 8, 1.9],
-        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 16, 8, 38],
+        // Tuned for the finished sweep, not the first county. These settings were chosen when the map
+        // held 300 places; at 7,000 every part of England had enough density to hit the top of the
+        // ramp, and the heatmap became a solid yellow silhouette of the country — which tells a
+        // reader nothing except where the coast is. Lower weight and a tighter radius put the range
+        // back where the variation is.
+        'heatmap-weight': ['interpolate', ['linear'], ['sqrt', ['get', 'cases']], 1, 0.12, 12, 1],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 0.35, 8, 0.9],
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 9, 8, 24],
         'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 6, .9, 8.5, 0],
         // Magma. The earlier ramp ran tan to brick and read as a stain — and worse, it was arbitrary:
         // three browns picked by eye are not ordered, so a reader could not tell a busy parish from a
