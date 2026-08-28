@@ -215,15 +215,10 @@ function wireSearch() {
                                   fetch(PROGRESS).then(r => r.json())]);
   const t = DB.totals;
   $('#stats').innerHTML = `
-    <dt>Counties swept</dt><dd>${DB.counties_done} of ${DB.counties_total}</dd>
+    <dt>Counties</dt><dd>${PROG.counties.filter(c => c.mentions).length.toLocaleString()}</dd>
     <dt>Records read</dt><dd>${t.records.toLocaleString()}</dd>
     <dt>Places located</dt><dd>${DB.places.length.toLocaleString()}</dd>
     <dt>Mentions</dt><dd>${t.mentions.toLocaleString()}</dd>`;
-  $('#progress-fill').style.width = (100 * DB.counties_done / DB.counties_total).toFixed(1) + '%';
-  const running = PROG.counties.find(c => c.status !== 'done');
-  $('#progress-note').textContent = running
-    ? `Currently reading ${running.county}. Counties are visited in an order that jumps around the country, so the map spreads early rather than creeping outwards.`
-    : 'Every county has been read.';
 
   const sel = $('#county');
   PROG.counties.filter(c => c.mentions).sort((a, b) => a.county.localeCompare(b.county))
