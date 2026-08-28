@@ -15,7 +15,7 @@ fi
 SUMMARY=$(python3 -c "
 import json
 d = json.load(open('data/places.json')); t = d['totals']
-print(f\"{d['counties_done']} counties complete · {len(d['places'])} places · {t['mentions']} mentions\")")
+print(f\"{d['counties']} counties · {len(d['places'])} places · {t['mentions']} mentions\")")
 git add data
 git -c user.name="Stephen Gadd" -c user.email="42514781+docuracy@users.noreply.github.com" \
   commit -q -m "Data: ${SUMMARY}

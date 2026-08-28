@@ -215,7 +215,7 @@ function wireSearch() {
                                   fetch(PROGRESS).then(r => r.json())]);
   const t = DB.totals;
   $('#stats').innerHTML = `
-    <dt>Counties</dt><dd>${PROG.counties.filter(c => c.mentions).length.toLocaleString()}</dd>
+    <dt>Counties</dt><dd>${(DB.counties || PROG.counties.filter(c => c.mentions).length).toLocaleString()}</dd>
     <dt>Records read</dt><dd>${t.records.toLocaleString()}</dd>
     <dt>Places located</dt><dd>${DB.places.length.toLocaleString()}</dd>
     <dt>Mentions</dt><dd>${t.mentions.toLocaleString()}</dd>`;

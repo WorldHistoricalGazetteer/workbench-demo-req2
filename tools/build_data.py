@@ -24,12 +24,25 @@ from collections import OrderedDict
 SWEEP, OUT = sys.argv[1], sys.argv[2]
 os.makedirs(os.path.join(OUT, 'mentions'), exist_ok=True)
 
-manifest = json.load(open(os.path.join(SWEEP, 'manifest.json')))['counties']
+# The FILES are the source of truth, not the manifest. The manifest is written by the sweep, and once
+# extraction moved to CRC the sweep stopped being the thing that produces readings — so a manifest with
+# ten counties in it was quietly hiding forty-one counties' worth of ingested data from the map.
+# Anything with a .jsonl is real; the manifest only supplies the record count where it happens to know.
+manifest = {}
+mpath = os.path.join(SWEEP, 'manifest.json')
+if os.path.exists(mpath):
+    try:
+        manifest = json.load(open(mpath))['counties']
+    except Exception:
+        manifest = {}
+
 places, progress, mentions_by_county = OrderedDict(), [], {}
 totals = {'records': 0, 'readings': 0, 'mentions': 0, 'unlocated': 0}
 unlocated = OrderedDict()
 
-for county, meta in manifest.items():
+counties = sorted(fn[:-6].replace('_', ' ') for fn in os.listdir(SWEEP) if fn.endswith('.jsonl'))
+for county in counties:
+    meta = manifest.get(county, {})
     path = os.path.join(SWEEP, county.replace(' ', '_') + '.jsonl')
     if not os.path.exists(path):
         continue
@@ -70,10 +83,11 @@ for county, meta in manifest.items():
                                     'ctx': (p.get('context') or '')[:220]})
             totals['mentions'] += 1
     mentions_by_county[county] = county_mentions
-    totals['records'] += meta.get('records', 0)
+    # Where the manifest has no record count, the distinct case references in the file are the count.
+    records = meta.get('records') or len(seen_cases)
+    totals['records'] += records
     totals['readings'] += readings
-    progress.append({'county': county, 'status': meta.get('status', 'running'),
-                     'records': meta.get('records', 0), 'cases': len(seen_cases),
+    progress.append({'county': county, 'records': records, 'cases': len(seen_cases),
                      'mentions': len(county_mentions)})
 
 for county, ms in mentions_by_county.items():
@@ -89,8 +103,7 @@ lons = [p['lon'] for p in out_places]; lats = [p['lat'] for p in out_places]
 json.dump({
     'generated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
     'series': 'TNA REQ 2', 'fields_read': ['subject', 'plaintiffs'],
-    'totals': totals, 'counties_done': sum(1 for p in progress if p['status'] == 'done'),
-    'counties_total': 52,
+    'totals': totals, 'counties': len([p for p in progress if p['mentions']]),
     'bounds': [[min(lons), min(lats)], [max(lons), max(lats)]] if lons else None,
     'places': out_places,
 }, open(os.path.join(OUT, 'places.json'), 'w'))
@@ -98,6 +111,6 @@ json.dump({'counties': sorted(progress, key=lambda c: -c['mentions']),
            'unlocated': sorted(unlocated.values(), key=lambda u: (-u['count'], u['name']))},
           open(os.path.join(OUT, 'progress.json'), 'w'))
 
-print('counties %d (%d complete) · records %d · readings %d · places %d · mentions %d · unlocated %d'
-      % (len(progress), sum(1 for p in progress if p['status'] == 'done'), totals['records'],
+print('counties %d · records %d · readings %d · places %d · mentions %d · unlocated %d'
+      % (len([p for p in progress if p['mentions']]), totals['records'],
          totals['readings'], len(out_places), totals['mentions'], totals['unlocated']))
