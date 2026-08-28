@@ -40,8 +40,11 @@ Anyone could write it, and it produces nothing more interesting than a table.
 What the Workbench does is everything after that, and it is the part that has always been laborious:
 
 1. **Reconcile the county.** The *county* column is matched against
-   [UK Historic Counties](https://whgazetteer.org/), resolving every row in a county's set to a single
-   polygon — `ukhc:ESE` for Essex, `ukhc:YRK` for Yorkshire, and so on.
+   [UK Historic Counties](https://whgazetteer.org/), resolving every row to a polygon — `ukhc:ESE` for
+   Essex, `ukhc:YRK` for Yorkshire. About one record in six names *more than one* county
+   (`County: Glamorgan; Gloucestershire`), and those are scoped by all of them at once: a case that
+   crosses a border is searched inside the union. Such a record is filed under the first county it
+   names, so it appears once rather than in each.
 2. **Read the prose, row by row.** A small language model reads the *Subject* and *Plaintiffs* fields
    of each record and returns the place names in them. The same model serves this interactively on
    WHG's own server; for a corpus this size it was run on GPUs at the Pitt Center for Research
@@ -157,6 +160,9 @@ This is a demonstration, and it should be read as one.
   1590.
 - **Dates are the catalogue's.** Many REQ 2 entries are dated only to the reign, and appear here as
   the full range 1558–1603.
+- **Cross-border cases are filed under one county.** A record naming Glamorgan and Gloucestershire is
+  searched inside both, but listed under Glamorgan, so the county filter shows it once. Filtering by
+  Gloucestershire will not surface it.
 - **Counties themselves are not plotted.** A county is named in nearly every entry of its own set and
   resolves every time, so mapping it would put one enormous dot over the middle of it telling you what
   you already knew. It is the container of that subset, not a finding within it.
